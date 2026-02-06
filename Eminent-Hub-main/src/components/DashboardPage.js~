@@ -1,0 +1,54 @@
+// components/DashboardPage.jsx
+"use client";
+
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
+import DashboardLayout from "@/components/DashboardLayout";
+import Outlet from "@/components/Outlet";
+
+export default function DashboardPage({
+                                          routeGuard: RouteGuard,
+                                          sidebar: SidebarComponent,
+                                          config, // Configuration object for tabs and content
+                                          defaultTab = "dashboard",
+                                          basePath,
+                                      }) {
+    const router = useRouter();
+    const searchParams = useSearchParams();
+    const initialTab = searchParams.get("tab") || defaultTab;
+    const [activeContent, setActiveContent] = useState(initialTab);
+    
+    useEffect(() => {
+        const currentTab = searchParams.get("tab") || defaultTab;
+        if (currentTab !== activeContent) {
+            setActiveContent(currentTab);
+        }
+    }, [searchParams, activeContent, defaultTab]);
+    
+    const handleNavigate = (content) => {
+        setActiveContent(content);
+        router.push(`${basePath}?tab=${content}`);
+    };
+    
+    const renderContent = () => {
+        const tabConfig = config.tabs.find((tab) => tab.content === activeContent);
+        if (tabConfig && tabConfig.component) {
+            return <tabConfig.component />;
+        }
+        const defaultTabConfig = config.tabs.find((tab) => tab.content === defaultTab);
+        return defaultTabConfig?.component ? <defaultTabConfig.component /> : <div>Content Not Found</div>;
+    };
+    
+    return (
+        <RouteGuard>
+            <DashboardLayout>
+                <div className="flex fixed h-full">
+                    <SidebarComponent onNavigate={handleNavigate} />
+                    <div className="flex-1 no-scrollbar overflow-y-auto">
+                        <Outlet>{renderContent()}</Outlet>
+                    </div>
+                </div>
+            </DashboardLayout>
+        </RouteGuard>
+    );
+}

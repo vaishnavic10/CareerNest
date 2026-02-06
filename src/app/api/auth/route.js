@@ -1,0 +1,13 @@
+import { saveUserToMongoDB } from '@/lib/users';
+import { NextResponse } from 'next/server';
+
+export async function POST(req) {
+    try {
+        const user = await req.json();
+        await saveUserToMongoDB(user);
+        return NextResponse.json({ message: 'User registered successfully' }, { status: 201 });
+    } catch (error) {
+        console.error('Error during signup:', error);
+        return NextResponse.json({ error: 'Failed to register user' }, { status: 500 });
+    }
+}
